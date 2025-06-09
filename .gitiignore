@@ -1,0 +1,14 @@
+# Ignore build output
+build/
+*.elf
+*.uf2
+*.bin
+*.map
+*.hex
+
+# VS Code
+.vscode/
+
+# Other OS-specific files
+.DS_Store
+Thumbs.db
