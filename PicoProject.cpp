@@ -1,49 +1,55 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 
-const uint Max_REPEATS = 10; // Define the LED pin number
-const int LONG_DELAY = 1000; // Define a long delay in milliseconds
-const int FAST_DELAY = 25; // Define a short delay in milliseconds
+#define LED_PIN PICO_DEFAULT_LED_PIN
+#define BUTTON_PIN 15 // Change this to your actual button GPIO pin
+
+const uint MAX_REPEATS = 10;
+const int LONG_DELAY = 1000; // milliseconds
+const int FAST_DELAY = 25;   // milliseconds
 
 int main() {
+    stdio_init_all();
 
-    stdio_init_all(); // Initialize all standard I/O
-    gpio_init(PICO_DEFAULT_LED_PIN);
-    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
-   
-    printf("LED Blink Example\n");
-    printf("======================\n\n");
+    // Initialize LED pin
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
+
+    // Initialize button pin with pull-up resistor
+    gpio_init(BUTTON_PIN);
+    gpio_set_dir(BUTTON_PIN, GPIO_IN);
+    gpio_pull_up(BUTTON_PIN);
+
+    printf("Pico LED Button Blink Example\n");
+    printf("=============================\n");
+
+    bool wasPressed = false;
+
+    // Turn LED ON by default
+    gpio_put(LED_PIN, true);
 
     while (true) {
-        printf("Blinking LED...\n");
-        sleep_ms(LONG_DELAY); // Wait for a long delay
+        bool buttonPressed = (gpio_get(BUTTON_PIN) == 0); // LOW means pressed
 
-        printf("LED ON\n");
-        gpio_put(PICO_DEFAULT_LED_PIN, true); // Turn the LED on
-        sleep_ms(LONG_DELAY); // Wait for a short delay
-        
-
-        printf("LED OFF\n");
-        gpio_put(PICO_DEFAULT_LED_PIN, false); // Turn the LED off
-        sleep_ms(1000); // Wait for a short delay
-
-        // Repeat the blinking process
-        printf("the leb should flash on and off alot .../n");
-        
-        for (int repeat=0; repeat< Max_REPEATS; repeat++){
-
-             printf("the led should flash off../n");
-             gpio_put(PICO_DEFAULT_LED_PIN, true); // Turn the LED on
-             sleep_ms(FAST_DELAY);
-
-             printf("the led should flash off../n");
-             gpio_put(PICO_DEFAULT_LED_PIN, false); // Turn the LED on
-             sleep_ms(FAST_DELAY);
-
-
+        if (buttonPressed) {
+            if (!wasPressed) {
+                printf("Button pressed. Starting to blink LED...\n");
+                wasPressed = true;
+            }
+            // Blink LED repeatedly
+            for (uint repeat = 0; repeat < MAX_REPEATS; repeat++) {
+                gpio_put(LED_PIN, false);
+                sleep_ms(FAST_DELAY);
+                gpio_put(LED_PIN, true);
+                sleep_ms(FAST_DELAY);
+            }
+        } else {
+            if (wasPressed) {
+                printf("Button released. LED stays ON.\n");
+                wasPressed = false;
+            }
+            gpio_put(LED_PIN, true); // Keep LED ON when button not pressed
+            sleep_ms(LONG_DELAY);    // Slow down loop to avoid flooding serial output
         }
-       
-    }  
-   
-    
+    }
 }
